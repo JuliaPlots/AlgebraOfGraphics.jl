@@ -27,8 +27,8 @@ function getlabeledcolorrange(grid)
     return isnothing(colorrange) ? nothing : (label, colorrange)
 end
 
-function _Colorbar_(fg::FigureGrid)
-    grid = fg.grid
+_Colorbar_(fg::FigureGrid) = _Colorbar_(fg.grid)
+function _Colorbar_(grid::Matrix{AxisEntries})
     labeledcolorrange = getlabeledcolorrange(grid)
     isnothing(labeledcolorrange) && return
     label, limits = labeledcolorrange
@@ -65,9 +65,8 @@ end
 
 hassymbolkey((k, v)::Pair) = k isa Symbol
 
-function _Legend_(fg::FigureGrid)
-    grid = fg.grid
-
+_Legend_(fg::FigureGrid) = _Legend_(fg.grid)
+function _Legend_(grid::Matrix{AxisEntries})
     # assume all subplots have same scales, to be changed to support free scales
     scales = filter(hassymbolkey, first(grid).scales)
 

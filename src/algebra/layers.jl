@@ -64,7 +64,7 @@ function compute_axes_grid(fig, s::OneOrMoreLayers;
                            axis=NamedTuple(), palettes=NamedTuple())
     layers::Layers = s
     entries = map(process, layers)
-    
+
     theme_palettes = NamedTuple(Makie.current_default_theme()[:palette])
     palettes = merge((layout=wrap,), map(to_value, theme_palettes), palettes)
 
@@ -74,13 +74,27 @@ function compute_axes_grid(fig, s::OneOrMoreLayers;
     # fit scales (compute plot values using all data values)
     map!(fitscale, values(scales))
 
-    axs = compute_grid_positions(scales)
 
-    axes_grid = map(CartesianIndices(axs)) do c
+    function create_axis(fig, c)
         type = get(axis, :type, Axis)
         options = Base.structdiff(axis, (; type))
         ax = type(fig[Tuple(c)...]; options...)
         return AxisEntries(ax, Entry[], scales)
+    end
+    function create_axis(f::Axis, c)
+        if !isempty(axis)
+            @warn("Axis got passed, but also axis attributes. Ignoring axis attributes: $(axis)")
+        end
+        return AxisEntries(fig, Entry[], scales)
+    end
+    axs = compute_grid_positions(scales)
+    sizes = length.(axs)
+
+    if sizes !== (1, 1) && fig isa Axis
+        error("You can only pass an Axis to draw!, if the calculated layout only contains one element. Elements: $(sizes)")
+    end
+    axes_grid = map(CartesianIndices(axs)) do c
+        return create_axis(fig, c)
     end
 
     for e in entries
